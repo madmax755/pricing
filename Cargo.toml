@@ -1,10 +1,12 @@
 [package]
-name = "pricing"
+name = "gbm_option_pricing"
 version = "0.1.0"
-edition = "2024"
+edition = "2021"
 
 [dependencies]
-ndarray = "0.16.1"
-rand = "0.9.0"
-rand_distr = "0.5.1"
-statrs = "0.18.0"
+ndarray = "0.15"
+rand = "0.8"
+rand_distr = "0.4"
+statrs = "0.16"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
