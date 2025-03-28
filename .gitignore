@@ -1,5 +1,5 @@
-/target
-/venv
-/todo.md
-/plan.md
-/target/*
+target
+venv
+todo.md
+plan.md
+Cargo.lock

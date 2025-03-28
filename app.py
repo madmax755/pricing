@@ -25,7 +25,6 @@ async def websocket_endpoint(websocket: WebSocket):
     try:
         # receive parameters from client
         params = await websocket.receive_json()
-        print(f"Received parameters: {params}")  # Debug log
         
         # Ensure all parameters are properly formatted
         spot = float(params["spot"])
@@ -47,11 +46,6 @@ async def websocket_endpoint(websocket: WebSocket):
             str(strike_price),
             "1"  # dummy value for num_trials
         ], capture_output=True, text=True)
-        
-        # debug output
-        print(f"BS process command: ./target/release/gbm_option_pricing bs_only {spot} {risk_free_rate} {volatility} {time_to_maturity} {steps} {strike_price} 1")
-        print(f"BS process output: {bs_process.stdout}")
-        print(f"BS process error: {bs_process.stderr}")
         
         try:
             bs_result = json.loads(bs_process.stdout)
@@ -109,8 +103,6 @@ async def websocket_endpoint(websocket: WebSocket):
                     "price": current_price
                 })
                 
-                # small delay to allow UI to update
-                await asyncio.sleep(0.01)
             
             # send final result
             await websocket.send_json({

@@ -37,6 +37,7 @@
         }
         input[type=number] {
             -moz-appearance: textfield;
+            appearance: textfield;
         }
         /* custom scrollbar */
         ::-webkit-scrollbar {
@@ -52,6 +53,49 @@
         ::-webkit-scrollbar-thumb:hover {
             background: #55a490;
         }
+        
+        /* tooltip styles */
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 240px;
+            background-color: #333;
+            color: #fff;
+            text-align: left;
+            border-radius: 6px;
+            padding: 8px 10px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -120px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 12px;
+            line-height: 1.4;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+            border: 1px solid #444;
+        }
+        
+        .tooltip .tooltiptext::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: #333 transparent transparent transparent;
+        }
+        
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
     </style>
 </head>
 <body class="bg-background flex flex-col items-center text-white min-h-screen font-sans">
@@ -61,45 +105,101 @@
         <!-- Form above graph -->
         <div class="w-full">
             <!-- Form container -->
-            <form id="simulationForm" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 space-y-1 mb-4">
+            <form id="simulationForm" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-4">
                 <div class="space-y-1">
-                    <label for="spot" class="text-sm font-medium">Spot Price:</label>
+                    <label for="spot" class="text-sm font-medium flex items-center">
+                        Spot Price:
+                        <span class="tooltip ml-1 text-gray-400 cursor-help">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span class="tooltiptext">The current market price of the underlying asset. This is the starting point for the simulation.</span>
+                        </span>
+                    </label>
                     <input type="number" id="spot" name="spot" value="100" step="0.01" required 
                            class="w-full bg-background-input border border-border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
                 </div>
 
                 <div class="space-y-1">
-                    <label for="strike_price" class="text-sm font-medium">Strike Price:</label>
+                    <label for="strike_price" class="text-sm font-medium flex items-center">
+                        Strike Price:
+                        <span class="tooltip ml-1 text-gray-400 cursor-help">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span class="tooltiptext">The pre-determined price at which the option can be exercised. For a call option, profit occurs when the spot price exceeds this value at expiration.</span>
+                        </span>
+                    </label>
                     <input type="number" id="strike_price" name="strike_price" value="120" step="0.01" required
                            class="w-full bg-background-input border border-border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
                 </div>
 
                 <div class="space-y-1">
-                    <label for="time_to_maturity" class="text-sm font-medium">Time to Maturity (years):</label>
+                    <label for="time_to_maturity" class="text-sm font-medium flex items-center">
+                        Time to Maturity (years):
+                        <span class="tooltip ml-1 text-gray-400 cursor-help">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span class="tooltiptext">The time until the option expires, expressed in years. Longer time periods generally increase option value due to greater price movement potential.</span>
+                        </span>
+                    </label>
                     <input type="number" id="time_to_maturity" name="time_to_maturity" value="1" step="0.01" required
                            class="w-full bg-background-input border border-border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
                 </div>
                 
                 <div class="space-y-1">
-                    <label for="risk_free_rate" class="text-sm font-medium">Risk-Free Rate:</label>
+                    <label for="risk_free_rate" class="text-sm font-medium flex items-center">
+                        Risk-Free Rate:
+                        <span class="tooltip ml-1 text-gray-400 cursor-help">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span class="tooltiptext">The theoretical rate of return on a risk-free investment (e.g., government bonds). Enter as a decimal (0.05 for 5%). Higher rates tend to increase call option values.</span>
+                        </span>
+                    </label>
                     <input type="number" id="risk_free_rate" name="risk_free_rate" value="0" step="0.01" required
                            class="w-full bg-background-input border border-border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
                 </div>
                 
                 <div class="space-y-1">
-                    <label for="volatility" class="text-sm font-medium">Volatility:</label>
+                    <label for="volatility" class="text-sm font-medium flex items-center">
+                        Volatility:
+                        <span class="tooltip ml-1 text-gray-400 cursor-help">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span class="tooltiptext">A measure of how much the price of the underlying asset fluctuates (standard deviation). Enter as a decimal (0.2 for 20%). Higher volatility generally increases option value.</span>
+                        </span>
+                    </label>
                     <input type="number" id="volatility" name="volatility" value="0.2" step="0.01" required
                            class="w-full bg-background-input border border-border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
                 </div>
                 
                 <div class="space-y-1">
-                    <label for="steps" class="text-sm font-medium">Steps per trial:</label>
+                    <label for="steps" class="text-sm font-medium flex items-center">
+                        Steps per trial:
+                        <span class="tooltip ml-1 text-gray-400 cursor-help">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span class="tooltiptext">The number of time steps used in each simulation path. More steps give more accurate results but slower simulations. 100 steps is generally sufficient for most cases.</span>
+                        </span>
+                    </label>
                     <input type="number" id="steps" name="steps" value="100" required
                            class="w-full bg-background-input border border-border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
                 </div>
                 
                 <div class="space-y-1">
-                    <label for="num_trials" class="text-sm font-medium">Number of Trials:</label>
+                    <label for="num_trials" class="text-sm font-medium flex items-center">
+                        Number of Trials:
+                        <span class="tooltip ml-1 text-gray-400 cursor-help">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span class="tooltiptext">The number of separate simulations to run. More trials produce more accurate pricing but take longer to compute. The simulation converges as trials increase.</span>
+                        </span>
+                    </label>
                     <input type="number" id="num_trials" name="num_trials" value="10000" required
                            class="w-full bg-background-input border border-border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
                 </div>
