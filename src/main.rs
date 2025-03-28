@@ -1,6 +1,6 @@
 use ndarray::{Array1, Array2, s};
-use rand_distr::Normal;
-use rand::prelude::*;
+use rand_distr::{Normal, Distribution};
+use statrs::distribution::{Normal as StatNormal, ContinuousCDF};
 use rand::rng;
 
 struct GBM {
@@ -15,7 +15,8 @@ impl GBM {
     fn dt(&self) -> f64 {
         self.time_to_maturity / self.steps as f64
     }
-
+    
+    // generates a single path 
     fn generate_path(&self) -> Array1<f64> {
         let dt = self.dt();
         let mut path = Array1::zeros(self.steps);
@@ -31,6 +32,7 @@ impl GBM {
         path
     }
 
+    // generates multiple paths
     fn generate_paths(&self, num_paths: usize) -> Array2<f64> {
         let mut paths = Array2::zeros((num_paths, self.steps));
         for i in 0..num_paths {
@@ -49,10 +51,20 @@ impl GBM {
 
         option_payoff.sum()/trials as f64
     }
+
+    // calculates the price of a European call option using the Black-Scholes formula (https://en.wikipedia.org/wiki/Black%E2%80%93Scholes_model#Black%E2%80%93Scholes_formula)
+    fn price_using_black_scholes(&self, strike_price: f64) -> f64 {
+        let normal = StatNormal::new(0.0, 1.0).unwrap();
+        let d1 = (self.spot.ln() - strike_price.ln() + (self.drift + 0.5 * self.volatility * self.volatility) * self.time_to_maturity) / 
+                 (self.volatility * self.time_to_maturity.sqrt());
+        let d2 = d1 - self.volatility * self.time_to_maturity.sqrt();
+        let call_price = self.spot * normal.cdf(d1) - strike_price * (-self.drift * self.time_to_maturity).exp() * normal.cdf(d2);
+        call_price
+    }
 }
 
 
-fn euro_option_payoff(spot_price: &f64, strike_price: &f64) -> f64 {
+fn euro_call_payoff(spot_price: &f64, strike_price: &f64) -> f64 {
     (spot_price - strike_price).max(0.0)
 }
 
@@ -62,12 +74,18 @@ fn main() {
         drift: 0.0,
         volatility: 0.2,
         time_to_maturity: 1.0,
-        steps: 5,
+        steps: 100,
     };
 
-    let result = model.run_simulation(100000, 120.0, euro_option_payoff);
+    let strike_price: f64 = 120.0;
 
-    println!("{}", result)
+    let result = model.run_simulation(100000, strike_price, euro_call_payoff);
+
+    println!("Monte Carlo Price: {}", result);
+
+    let black_scholes_price = model.price_using_black_scholes(strike_price);
+
+    println!("Black-Scholes Price: {}", black_scholes_price);
 }
 
 
