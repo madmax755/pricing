@@ -2,6 +2,7 @@ use ndarray::{Array1, Array2, s};
 use rand_distr::{Normal, Distribution};
 use statrs::distribution::{Normal as StatNormal, ContinuousCDF};
 use rand::thread_rng;
+
 pub struct GBM {
     pub spot: f64,
     pub risk_free_rate: f64,
@@ -109,12 +110,84 @@ impl GBM {
     }
 
     // calculates the price of a European call option using the Black-Scholes formula
-    pub fn price_using_black_scholes(&self, strike_price: f64) -> f64 {
+    pub fn price_call_bs(&self, strike_price: f64) -> f64 {
         let normal = StatNormal::new(0.0, 1.0).unwrap();
         let d1 = (self.spot.ln() - strike_price.ln() + (self.risk_free_rate + 0.5 * self.volatility * self.volatility) * self.time_to_maturity) / 
                  (self.volatility * self.time_to_maturity.sqrt());
         let d2 = d1 - self.volatility * self.time_to_maturity.sqrt();
         let call_price = self.spot * normal.cdf(d1) - strike_price * (-self.risk_free_rate * self.time_to_maturity).exp() * normal.cdf(d2);
         call_price
+    }
+
+    // calculates the price of a European put option using the Black-Scholes formula
+    pub fn price_put_bs(&self, strike_price: f64) -> f64 {
+        let normal = StatNormal::new(0.0, 1.0).unwrap();
+        let d1 = (self.spot.ln() - strike_price.ln() + (self.risk_free_rate + 0.5 * self.volatility * self.volatility) * self.time_to_maturity) / 
+                 (self.volatility * self.time_to_maturity.sqrt());
+        let d2 = d1 - self.volatility * self.time_to_maturity.sqrt();
+        let put_price = strike_price * (-self.risk_free_rate * self.time_to_maturity).exp() * normal.cdf(-d2) - self.spot * normal.cdf(-d1);
+        put_price
+    }
+    
+    // Calculate option Greeks using finite difference method
+    pub fn calculate_greeks(&self, strike_price: f64, option_type: &str) -> (f64, f64, f64, f64) {
+        // Calculate d1 and d2 which are used in multiple Greeks
+        let d1 = (self.spot.ln() - strike_price.ln() + (self.risk_free_rate + 0.5 * self.volatility * self.volatility) * self.time_to_maturity) / 
+                 (self.volatility * self.time_to_maturity.sqrt());
+        let d2 = d1 - self.volatility * self.time_to_maturity.sqrt();
+        
+        // Standard normal distribution and PDF
+        let normal = StatNormal::new(0.0, 1.0).unwrap();
+        
+        // Standard normal PDF function
+        let norm_pdf = |x: f64| -> f64 {
+            (-0.5 * x * x).exp() / (2.0 * std::f64::consts::PI).sqrt()
+        };
+        
+        // discount factor
+        let discount = (-self.risk_free_rate * self.time_to_maturity).exp();
+        
+        // calculate Greeks based on option type
+        let (delta, theta, vega, gamma) = if option_type == "call" {
+            // delta for call = N(d1)
+            let delta = normal.cdf(d1);
+            
+            // theta for call = -S*N'(d1)*σ/(2*√T) - r*K*e^(-rT)*N(d2)
+            let theta = -self.spot * norm_pdf(d1) * self.volatility / (2.0 * self.time_to_maturity.sqrt()) 
+                         - self.risk_free_rate * strike_price * discount * normal.cdf(d2);
+            
+            // vega for call = S*√T*N'(d1)
+            let vega = self.spot * self.time_to_maturity.sqrt() * norm_pdf(d1);
+            
+            // gamma (same for call and put) = N'(d1)/(S*σ*√T)
+            let gamma = norm_pdf(d1) / (self.spot * self.volatility * self.time_to_maturity.sqrt());
+            
+            (delta, theta, vega, gamma)
+        } else {
+            // delta for put = N(d1) - 1
+            let delta = normal.cdf(d1) - 1.0;
+            
+            // theta for put = -S*N'(d1)*σ/(2*√T) + r*K*e^(-rT)*N(-d2)
+            let theta = -self.spot * norm_pdf(d1) * self.volatility / (2.0 * self.time_to_maturity.sqrt()) 
+                         + self.risk_free_rate * strike_price * discount * normal.cdf(-d2);
+            
+            // vega for put = S*√T*N'(d1) (same as call)
+            let vega = self.spot * self.time_to_maturity.sqrt() * norm_pdf(d1);
+            
+            // gamma (same for call and put) = N'(d1)/(S*σ*√T)
+            let gamma = norm_pdf(d1) / (self.spot * self.volatility * self.time_to_maturity.sqrt());
+            
+            (delta, theta, vega, gamma)
+        };
+        
+        // return delta, gamma, theta, vega (standard order for Greeks)
+        (delta, gamma, theta, vega)
+    }
+
+    // generates price distribution data from a single simulation
+    pub fn generate_price_distribution(&self, num_paths: usize) -> Vec<f64> {
+        let paths = self.generate_paths(num_paths);
+        let final_prices = paths.slice(s![.., -1]).to_vec();
+        final_prices
     }
 }

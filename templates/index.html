@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -28,6 +29,7 @@
             }
         }
     </script>
+    <script src="/static/js/index.js" defer></script>
     <style>
         /* remove spinner buttons from number inputs */
         input::-webkit-outer-spin-button,
@@ -35,31 +37,36 @@
             -webkit-appearance: none;
             margin: 0;
         }
+
         input[type=number] {
             -moz-appearance: textfield;
             appearance: textfield;
         }
+
         /* custom scrollbar */
         ::-webkit-scrollbar {
             width: 8px;
         }
+
         ::-webkit-scrollbar-track {
             background: #1d1d1d;
         }
+
         ::-webkit-scrollbar-thumb {
             background: #3d796a;
             border-radius: 4px;
         }
+
         ::-webkit-scrollbar-thumb:hover {
             background: #55a490;
         }
-        
+
         /* tooltip styles */
         .tooltip {
             position: relative;
             display: inline-block;
         }
-        
+
         .tooltip .tooltiptext {
             visibility: hidden;
             width: 240px;
@@ -80,7 +87,7 @@
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
             border: 1px solid #444;
         }
-        
+
         .tooltip .tooltiptext::after {
             content: "";
             position: absolute;
@@ -91,341 +98,249 @@
             border-style: solid;
             border-color: #333 transparent transparent transparent;
         }
-        
+
         .tooltip:hover .tooltiptext {
             visibility: visible;
             opacity: 1;
         }
     </style>
 </head>
+
 <body class="bg-background flex flex-col items-center text-white min-h-screen font-sans">
     <h1 class="text-3xl font-light text-center text-primary mt-8 mb-4">GBM Option Pricing Simulator</h1>
-    
+
     <div class="flex flex-col items-center gap-6 m-5 p-8 bg-background-container rounded-lg shadow-lg max-w-6xl w-full">
         <!-- Form above graph -->
         <div class="w-full">
             <!-- Form container -->
             <form id="simulationForm" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+
+                <!-- option type -->
+                <div class="space-y-1">
+                    <label for="option_type" class="text-sm font-medium flex items-center">
+                        Option Type:
+                    </label>
+                    <select id="option_type" name="option_type" required
+                        class="w-full bg-background-input border border-border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+                        <option value="call">Call (European)</option>
+                        <option value="put">Put (European)</option>
+                    </select>
+                </div>
+
+                <!-- spot price -->
                 <div class="space-y-1">
                     <label for="spot" class="text-sm font-medium flex items-center">
                         Spot Price:
                         <span class="tooltip ml-1 text-gray-400 cursor-help">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
-                            <span class="tooltiptext">The current market price of the underlying asset. This is the starting point for the simulation.</span>
+                            <span class="tooltiptext">The current market price of the underlying asset. This is the
+                                starting point for the simulation.</span>
                         </span>
                     </label>
-                    <input type="number" id="spot" name="spot" value="100" step="0.01" required 
-                           class="w-full bg-background-input border border-border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+                    <input type="number" id="spot" name="spot" value="100" step="0.01" required
+                        class="w-full bg-background-input border border-border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
                 </div>
 
+                <!-- strike price -->
                 <div class="space-y-1">
                     <label for="strike_price" class="text-sm font-medium flex items-center">
                         Strike Price:
                         <span class="tooltip ml-1 text-gray-400 cursor-help">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
-                            <span class="tooltiptext">The pre-determined price at which the option can be exercised. For a call option, profit occurs when the spot price exceeds this value at expiration.</span>
+                            <span class="tooltiptext">The pre-determined price at which the option can be exercised. For
+                                a call option, profit occurs when the spot price exceeds this value at
+                                expiration.</span>
                         </span>
                     </label>
                     <input type="number" id="strike_price" name="strike_price" value="120" step="0.01" required
-                           class="w-full bg-background-input border border-border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+                        class="w-full bg-background-input border border-border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
                 </div>
 
+                <!-- time to maturity -->
                 <div class="space-y-1">
                     <label for="time_to_maturity" class="text-sm font-medium flex items-center">
                         Time to Maturity (years):
                         <span class="tooltip ml-1 text-gray-400 cursor-help">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
-                            <span class="tooltiptext">The time until the option expires, expressed in years. Longer time periods generally increase option value due to greater price movement potential.</span>
+                            <span class="tooltiptext">The time until the option expires, expressed in years. Longer time
+                                periods generally increase option value due to greater price movement potential.</span>
                         </span>
                     </label>
                     <input type="number" id="time_to_maturity" name="time_to_maturity" value="1" step="0.01" required
-                           class="w-full bg-background-input border border-border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+                        class="w-full bg-background-input border border-border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
                 </div>
-                
+
+                <!-- risk-free rate -->
                 <div class="space-y-1">
                     <label for="risk_free_rate" class="text-sm font-medium flex items-center">
                         Risk-Free Rate:
                         <span class="tooltip ml-1 text-gray-400 cursor-help">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
-                            <span class="tooltiptext">The theoretical rate of return on a risk-free investment (e.g., government bonds). Enter as a decimal (0.05 for 5%). Higher rates tend to increase call option values.</span>
+                            <span class="tooltiptext">The theoretical rate of return on a risk-free investment (e.g.,
+                                government bonds). Enter as a decimal (0.05 for 5%). Higher rates tend to increase call
+                                option values.</span>
                         </span>
                     </label>
                     <input type="number" id="risk_free_rate" name="risk_free_rate" value="0" step="0.01" required
-                           class="w-full bg-background-input border border-border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+                        class="w-full bg-background-input border border-border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
                 </div>
-                
+
+                <!-- volatility -->
                 <div class="space-y-1">
                     <label for="volatility" class="text-sm font-medium flex items-center">
                         Volatility:
                         <span class="tooltip ml-1 text-gray-400 cursor-help">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
-                            <span class="tooltiptext">A measure of how much the price of the underlying asset fluctuates (standard deviation). Enter as a decimal (0.2 for 20%). Higher volatility generally increases option value.</span>
+                            <span class="tooltiptext">A measure of how much the price of the underlying asset fluctuates
+                                (standard deviation). Enter as a decimal (0.2 for 20%). Higher volatility generally
+                                increases option value.</span>
                         </span>
                     </label>
                     <input type="number" id="volatility" name="volatility" value="0.2" step="0.01" required
-                           class="w-full bg-background-input border border-border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+                        class="w-full bg-background-input border border-border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
                 </div>
-                
+
+                <!-- steps per trial -->
                 <div class="space-y-1">
                     <label for="steps" class="text-sm font-medium flex items-center">
                         Steps per trial:
                         <span class="tooltip ml-1 text-gray-400 cursor-help">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
-                            <span class="tooltiptext">The number of time steps used in each simulation path. More steps give more accurate results but slower simulations. 100 steps is generally sufficient for most cases.</span>
+                            <span class="tooltiptext">The number of time steps used in each simulation path. More steps
+                                give more accurate results but slower simulations. 100 steps is generally sufficient for
+                                most cases.</span>
                         </span>
                     </label>
                     <input type="number" id="steps" name="steps" value="100" required
-                           class="w-full bg-background-input border border-border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+                        class="w-full bg-background-input border border-border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
                 </div>
-                
+
+                <!-- number of trials -->
                 <div class="space-y-1">
                     <label for="num_trials" class="text-sm font-medium flex items-center">
                         Number of Trials:
                         <span class="tooltip ml-1 text-gray-400 cursor-help">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
-                            <span class="tooltiptext">The number of separate simulations to run. More trials produce more accurate pricing but take longer to compute. The simulation converges as trials increase.</span>
+                            <span class="tooltiptext">The number of separate simulations to run. More trials produce
+                                more accurate pricing but take longer to compute. The simulation converges as trials
+                                increase.</span>
                         </span>
                     </label>
                     <input type="number" id="num_trials" name="num_trials" value="10000" required
-                           class="w-full bg-background-input border border-border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+                        class="w-full bg-background-input border border-border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
                 </div>
-                
-                <div class="sm:col-span-1 md:col-span-1 flex items-end">
-                    <button type="submit" id="runButton" 
-                            class="bg-background-input hover:bg-[#3c3c3c] text-white font-medium py-2 px-4 rounded transition-colors w-full border border-border">
+
+                <!-- run button -->
+                <div class="sm:col-span-1 md:col-span-1 lg:col-span-4 flex items-end">
+                    <button type="submit" id="runButton"
+                        class="bg-primary-dark text-white font-medium py-2 px-4 rounded transition-colors w-full border border-border">
                         Run Simulation
                     </button>
                 </div>
             </form>
-            
+
             <div class="text-gray-400 italic mt-4" id="status"></div>
             <div class="w-full bg-background-input mt-4 rounded-full overflow-hidden relative h-2">
-                <div class="absolute top-0 left-0 bottom-0 bg-gradient-to-r from-primary-dark to-primary rounded-full " id="progressBar" style="width: 0%"></div>
+                <div class="absolute top-0 left-0 bottom-0 bg-gradient-to-r from-primary-dark to-primary rounded-full "
+                    id="progressBar" style="width: 0%"></div>
             </div>
-            
+
             <!-- Results box hidden as requested -->
         </div>
-        
+
         <!-- Chart container -->
         <div class="bg-background-container rounded-lg w-full border border-border p-4">
             <div class="h-[500px]">
                 <canvas id="convergenceChart"></canvas>
             </div>
         </div>
+
+        <!-- Greeks container -->
+        <div class="bg-background-container rounded-lg w-full border border-border p-4">
+            <h2 class="text-xl font-light text-primary mb-4">Option Greeks</h2>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4" id="greeksContainer">
+                <div class="bg-background-input p-4 rounded border border-border">
+                    <div class="flex items-center">
+                        <span class="text-sm text-gray-400 mr-2">Delta</span>
+                        <span class="tooltip ml-1 text-gray-400 cursor-help">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span class="tooltiptext">Rate of change of option price with respect to changes in the underlying asset price. Ranges from -1 to 1.</span>
+                        </span>
+                    </div>
+                    <div class="text-2xl font-light mt-2" id="deltaStat">-</div>
+                </div>
+                
+                <div class="bg-background-input p-4 rounded border border-border">
+                    <div class="flex items-center">
+                        <span class="text-sm text-gray-400 mr-2">Gamma</span>
+                        <span class="tooltip ml-1 text-gray-400 cursor-help">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span class="tooltiptext">Rate of change of delta with respect to changes in the underlying price. Measures the curvature of option value.</span>
+                        </span>
+                    </div>
+                    <div class="text-2xl font-light mt-2" id="gammaStat">-</div>
+                </div>
+                
+                <div class="bg-background-input p-4 rounded border border-border">
+                    <div class="flex items-center">
+                        <span class="text-sm text-gray-400 mr-2">Theta</span>
+                        <span class="tooltip ml-1 text-gray-400 cursor-help">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span class="tooltiptext">Rate of change of option value with respect to time (time decay). Usually negative for options, representing value lost per day.</span>
+                        </span>
+                    </div>
+                    <div class="text-2xl font-light mt-2" id="thetaStat">-</div>
+                </div>
+                
+                <div class="bg-background-input p-4 rounded border border-border">
+                    <div class="flex items-center">
+                        <span class="text-sm text-gray-400 mr-2">Vega</span>
+                        <span class="tooltip ml-1 text-gray-400 cursor-help">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span class="tooltiptext">Sensitivity of option price to changes in volatility. Higher vega means greater sensitivity to volatility changes.</span>
+                        </span>
+                    </div>
+                    <div class="text-2xl font-light mt-2" id="vegaStat">-</div>
+                </div>
+            </div>
+        </div>
     </div>
-    
-    <script>
-        // initialize chart
-        const ctx = document.getElementById('convergenceChart').getContext('2d');
-        Chart.defaults.color = '#ffffff';
-        Chart.defaults.borderColor = '#444';
-        
-        const chart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: [],
-                datasets: [
-                    {
-                        label: 'Monte Carlo Price',
-                        data: [],
-                        borderColor: '#55a490',
-                        backgroundColor: 'rgba(85, 164, 144, 0.1)',
-                        tension: 0.2,
-                        borderWidth: 2,
-                        pointRadius: 0,
-                        pointHoverRadius: 4
-                    },
-                    {
-                        label: 'Black-Scholes Price',
-                        data: [],
-                        borderColor: '#e05c5c',
-                        borderWidth: 2,
-                        borderDash: [5, 5],
-                        pointRadius: 0,
-                        fill: false
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                animation: false,
-                scales: {
-                    x: {
-                        title: {
-                            display: true,
-                            text: 'Number of Trials',
-                            color: '#ffffff',
-                            font: {
-                                size: 14
-                            }
-                        },
-                        grid: {
-                            color: 'rgba(68, 68, 68, 0.5)',
-                            drawBorder: false
-                        }
-                    },
-                    y: {
-                        title: {
-                            display: true,
-                            text: 'Option Price',
-                            color: '#ffffff',
-                            font: {
-                                size: 14
-                            }
-                        },
-                        grid: {
-                            color: 'rgba(68, 68, 68, 0.5)',
-                            drawBorder: false
-                        }
-                    }
-                },
-                plugins: {
-                    legend: {
-                        labels: {
-                            font: {
-                                size: 12
-                            },
-                            padding: 20
-                        }
-                    }
-                }
-            }
-        });
-        
-        let socket = null;
-        let blackScholesPrice = null;
-        let mcPrices = [];
-        let trialCounts = [];
-        
-        document.getElementById('simulationForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            // disable the run button
-            const runButton = document.getElementById('runButton');
-            runButton.disabled = true;
-            runButton.classList.add('opacity-50');
-            runButton.classList.remove('hover:bg-[#3c3c3c]');
-            
-            // reset chart and results
-            chart.data.labels = [];
-            chart.data.datasets[0].data = [];
-            chart.data.datasets[1].data = [];
-            chart.update();
-            
-            // Explicitly reset progress bar to 0%
-            const progressBar = document.getElementById('progressBar');
-            progressBar.style.width = '0%';
-            
-            // reset tracking variables
-            blackScholesPrice = null;
-            mcPrices = [];
-            trialCounts = [];
-            
-            // get form data
-            const formData = new FormData(this);
-            const params = {};
-            for (const [key, value] of formData.entries()) {
-                params[key] = value;
-            }
-            
-            document.getElementById('status').textContent = 'Connecting...';
-            
-            // close existing socket if any
-            if (socket && socket.readyState < 2) {
-                socket.close();
-            }
-            
-            // create new WebSocket connection
-            socket = new WebSocket(`ws://${window.location.host}/ws`);
-            
-            socket.onopen = function() {
-                document.getElementById('status').textContent = 'Connected. Starting simulation...';
-                socket.send(JSON.stringify(params));
-            };
-            
-            socket.onmessage = function(event) {
-                const data = JSON.parse(event.data);
-                
-                if (data.error) {
-                    document.getElementById('status').textContent = 'Error: ' + data.error;
-                    runButton.disabled = false;
-                    runButton.classList.remove('opacity-50');
-                    runButton.classList.add('hover:bg-[#3c3c3c]');
-                    return;
-                }
-                
-                if (data.type === 'bs_price') {
-                    // received Black-Scholes price
-                    blackScholesPrice = data.value;
-                    document.getElementById('status').textContent = 'Running Monte Carlo simulation...';
-                }
-                else if (data.type === 'mc_update') {
-                    // received Monte Carlo update
-                    const trials = data.trials;
-                    const price = data.price;
-                    
-                    // update progress
-                    const totalTrials = parseInt(params.num_trials);
-                    // Ensure trials is not greater than totalTrials
-                    const safeTrials = Math.min(trials, totalTrials);
-                    const progress = (safeTrials / totalTrials) * 100;
-                    document.getElementById('progressBar').style.width = progress + '%';
-                    
-                    // update chart
-                    trialCounts.push(trials);
-                    mcPrices.push(price);
-                    
-                    chart.data.labels = trialCounts;
-                    chart.data.datasets[0].data = mcPrices;
-                    
-                    if (blackScholesPrice !== null) {
-                        chart.data.datasets[1].data = Array(trialCounts.length).fill(blackScholesPrice);
-                    }
-                    
-                    chart.update();
-                    
-                    document.getElementById('status').textContent = 
-                        `Running Monte Carlo simulation... ${trials} trials completed`;
-                }
-                else if (data.type === 'complete') {
-                    // simulation complete
-                    document.getElementById('status').textContent = 'Simulation complete!';
-                    runButton.disabled = false;
-                    runButton.classList.remove('opacity-50');
-                    runButton.classList.add('hover:bg-[#3c3c3c]');
-                }
-            };
-            
-            socket.onerror = function(error) {
-                document.getElementById('status').textContent = 'WebSocket error!';
-                console.error('WebSocket error:', error);
-                runButton.disabled = false;
-                runButton.classList.remove('opacity-50');
-                runButton.classList.add('hover:bg-[#3c3c3c]');
-            };
-            
-            socket.onclose = function() {
-                document.getElementById('status').textContent += ' Connection closed.';
-                runButton.disabled = false;
-                runButton.classList.remove('opacity-50');
-                runButton.classList.add('hover:bg-[#3c3c3c]');
-            };
-        });
-    </script>
 </body>
-</html> 
+
+</html>

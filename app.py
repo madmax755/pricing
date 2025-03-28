@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Request, Form, WebSocket
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, JSONResponse
 import subprocess
 import json
 import os
@@ -14,12 +14,52 @@ app = FastAPI()
 # set up templates
 templates = Jinja2Templates(directory="templates")
 
+# set up static files
+static_files = StaticFiles(directory="static")
+app.mount("/static", static_files)
+
 @app.get("/", response_class=HTMLResponse)
 async def index(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
-@app.websocket("/ws")
-async def websocket_endpoint(websocket: WebSocket):
+@app.post("/api/greeks")
+async def greeks(
+    spot: float = Form(...),
+    risk_free_rate: float = Form(...),
+    volatility: float = Form(...),
+    time_to_maturity: float = Form(...),
+    steps: int = Form(...),
+    strike_price: float = Form(...),
+    option_type: str = Form(...)
+) -> JSONResponse:
+    
+    # recieved parameters
+    print(f"Received parameters: {spot}, {risk_free_rate}, {volatility}, {time_to_maturity}, {steps}, {strike_price}, {option_type}")
+    
+    # run the rust program with the provided parameters
+    result = subprocess.run([
+        "./target/release/gbm_option_pricing",
+        "greeks",
+        option_type,
+        str(spot),
+        str(risk_free_rate),
+        str(volatility),
+        str(time_to_maturity),
+        str(steps),
+        str(strike_price),
+        "1" # dummy value for num_trials
+    ], capture_output=True, text=True)
+
+    # parse the output
+    try:
+        output = json.loads(result.stdout)
+    except json.JSONDecodeError:
+        return JSONResponse(status_code=500, content={"error": "Failed to parse output"})
+    
+    return JSONResponse(status_code=200, content=output)
+
+@app.websocket("/ws/mc-simulation")
+async def mc_simulation(websocket: WebSocket):
     await websocket.accept()
     
     try:
@@ -33,11 +73,15 @@ async def websocket_endpoint(websocket: WebSocket):
         time_to_maturity = float(params["time_to_maturity"])
         steps = int(params["steps"])
         strike_price = float(params["strike_price"])
-        
+        option_type = params["option_type"]
+
+        print(str(spot), str(risk_free_rate), str(volatility), str(time_to_maturity), str(steps), str(strike_price), option_type)
+
         # calculate black-scholes price first (quick calculation)
         bs_process = subprocess.run([
             "./target/release/gbm_option_pricing",
             "bs_only",  # new mode flag
+            option_type,
             str(spot),
             str(risk_free_rate),
             str(volatility),
@@ -49,6 +93,7 @@ async def websocket_endpoint(websocket: WebSocket):
         
         try:
             bs_result = json.loads(bs_process.stdout)
+            print(f"Black-scholes result: {bs_result}")
             black_scholes_price = bs_result["black_scholes_price"]
             
             # send black-scholes price to client
@@ -73,6 +118,7 @@ async def websocket_endpoint(websocket: WebSocket):
                 batch_process = subprocess.run([
                     "./target/release/gbm_option_pricing",
                     "batch",  # batch mode flag
+                    option_type,
                     str(spot),
                     str(risk_free_rate),
                     str(volatility),
